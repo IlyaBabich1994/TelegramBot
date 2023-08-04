@@ -1,4 +1,4 @@
-package com.bot.telegram.service
+package com.bot.telegram.service.filters
 
 import com.bot.telegram.repository.WordRepository
 import org.apache.lucene.analysis.Analyzer
@@ -12,7 +12,6 @@ import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.*
 import org.apache.lucene.search.BooleanQuery.Builder
-import org.apache.lucene.search.BooleanClause.Occur
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.springframework.stereotype.Service
 import org.tartarus.snowball.ext.RussianStemmer

@@ -1,5 +1,8 @@
 package com.bot.telegram.service
 
+import com.bot.telegram.service.filters.FilterSelector
+import com.bot.telegram.service.filters.FilterService
+import com.bot.telegram.service.filters.WordFilter
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -15,7 +18,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 @Component
 class TelegramCore(
         val wordService: WordService,
-        val wordFilter: WordFilter
+        val filterService: FilterService
 ) : TelegramLongPollingBot("6245918205:AAFtYMs7LUmPy9Cm2aHSo2_RWmgXwogVYFc") {
     private val logger = LoggerFactory.getLogger(TelegramCore::class.java)
 
@@ -33,9 +36,9 @@ class TelegramCore(
         logger.info("Update received: {}", update)
         val message = update.message
         val messages = wordService.findAll();
+        val filter = filterService.getResponse(message.text)
         logger.info("Message received: {}", message)
         var text = message.text
-        if (wordFilter.containsPhrase(text)) {
             try {
                 logger.info("Send message: {}", text)
                 val inlinedKeyboard = InlineKeyboardMarkup()
@@ -54,13 +57,6 @@ class TelegramCore(
             } catch (e: TelegramApiException) {
                 e.printStackTrace()
             }
-        } else {
-            val reply = SendMessage()
-            reply.chatId = message.chatId.toString()
-            reply.text = "Я не понимаю"
-            logger.info("Reply message: {}", reply)
-            execute(reply)
-        }
     }
 
     override fun getBotUsername(): String {
