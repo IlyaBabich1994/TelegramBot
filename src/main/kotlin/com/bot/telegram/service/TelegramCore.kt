@@ -1,8 +1,9 @@
 package com.bot.telegram.service
 
-import com.bot.telegram.service.filters.FilterSelector
+import com.bot.telegram.model.Chat
+import com.bot.telegram.model.TelegramRequest
+import com.bot.telegram.model.TelegramResponse
 import com.bot.telegram.service.filters.FilterService
-import com.bot.telegram.service.filters.WordFilter
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -10,15 +11,15 @@ import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 
 
 @Component
 class TelegramCore(
-        val wordService: WordService,
-        val filterService: FilterService
+    val wordService: WordService,
+    val filterService: FilterService,
+    val chatService: ChatService
 ) : TelegramLongPollingBot("6245918205:AAFtYMs7LUmPy9Cm2aHSo2_RWmgXwogVYFc") {
     private val logger = LoggerFactory.getLogger(TelegramCore::class.java)
 
@@ -35,28 +36,43 @@ class TelegramCore(
     override fun onUpdateReceived(update: Update) {
         logger.info("Update received: {}", update)
         val message = update.message
-        val messages = wordService.findAll();
-        val filter = filterService.getResponse(message.text)
+        val telegramResponse: TelegramResponse?
         logger.info("Message received: {}", message)
-        var text = message.text
-            try {
-                logger.info("Send message: {}", text)
-                val inlinedKeyboard = InlineKeyboardMarkup()
-                val first = InlineKeyboardButton("Котик")
-                val second = InlineKeyboardButton("Пёсик")
-                first.callbackData = "Котик"
-                second.callbackData = "Пёсик"
-                inlinedKeyboard.keyboard = listOf(listOf(first, second))
+        try {
+            if (update.hasChatMember()) {
+                chatService.saveChat(
+                    Chat(
+                        chatId = update.chatMember.chat.id,
+                        chatName = update.chatMember.chat.userName
+                    )
+                )
+                return
+            }
+            telegramResponse = filterService.getResponse(
+                TelegramRequest(
+                    message = update.message,
+                    buttons = message?.replyMarkup
+                )
+            )
+            logger.info("Filter received: {}", telegramResponse)
+            if (telegramResponse != null) {
 
                 val reply = SendMessage()
                 reply.chatId = message.chatId.toString()
-                reply.text = "Котик"
+                reply.text = telegramResponse.text ?: ""
+                reply.replyMarkup = telegramResponse.buttons
                 logger.info("Reply message: {}", reply)
                 execute(reply)
-
-            } catch (e: TelegramApiException) {
-                e.printStackTrace()
+            } else {
+                val reply = SendMessage()
+                reply.chatId = message.chatId.toString()
+                reply.text = "No filter found"
+                execute(reply)
+                logger.info("No filter found")
             }
+        } catch (e: TelegramApiException) {
+            e.printStackTrace()
+        }
     }
 
     override fun getBotUsername(): String {

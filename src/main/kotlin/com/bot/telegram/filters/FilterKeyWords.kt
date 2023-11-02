@@ -1,6 +1,9 @@
 package com.bot.telegram.filters
 
+import com.bot.telegram.model.TelegramRequest
 import com.bot.telegram.model.TelegramResponse
+import com.bot.telegram.service.UserService
+import com.bot.telegram.service.WordService
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
@@ -8,17 +11,30 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 
 @Component
-class FilterKeyWords : TextFilter() {
-    override fun doFilter(text: String, keywords: List<String>): TelegramResponse? {
+class FilterKeyWords(
+    private val wordService: WordService,
+    private val userService: UserService) : MessageFilter() {
+    companion object {
+        val logger = org.slf4j.LoggerFactory.getLogger(FilterKeyWords::class.java)
+    }
+    override fun doFilter(request: TelegramRequest): TelegramResponse? {
+        logger.info("doFilter <-- text: $request")
+        val keywords = wordService.findAll()
         for (regex in keywords) {
-            if (text.contains(Regex(regex))) {
+            logger.info("doFilter regex: $regex")
+            if (request.message?.text?.contains(Regex(regex)) == true) {
+                logger.info("doFilter request.message?.text: ${request.message.text}")
+                val newUser = userService.findByNameAndChatIdAndCanWrite(
+                    request.message.from.userName ?: "",
+                    request.chatId ?: 0, true
+                )
                 return constructTelegramResponce()
             }
         }
         return null
     }
 
-    fun constructTelegramResponce(): TelegramResponse {
+    private fun constructTelegramResponce(): TelegramResponse {
         val rowsInline: MutableList<MutableList<InlineKeyboardButton>> = mutableListOf()
         val rowInline: MutableList<InlineKeyboardButton> = mutableListOf()
         val first = InlineKeyboardButton("Я ищу новый дом для котик")
@@ -31,10 +47,6 @@ class FilterKeyWords : TextFilter() {
         val inlinedKeyboard = InlineKeyboardMarkup()
         inlinedKeyboard.keyboard = rowsInline
         return TelegramResponse(
-            text = "Котик",
-            message = SendMessage().apply {
-                text = "Котик"
-            },
             buttons = inlinedKeyboard,
             isEnabled = true
         )

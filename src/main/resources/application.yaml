@@ -1,25 +1,17 @@
 filters:
   default:
-    -wordFilter
-server:
-    port: 8080
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-  datasource:
-    url: jdbc:mysql://localhost:3306/crudtasks?useSSL=false&serverTimezone=UTC
-    username: root
-    password: 0000
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  thymeleaf:
-    cache: false
-    prefix: classpath:/templates/
-    suffix: .html
-    encoding: UTF-8
-    mode: HTML
-    servlet:
-      content-type: text/html
-  mvc:
-    static-path-pattern: /static/**
+    - filterUserAccept
+    - filterKeyWords
+port: 8080
+datasource:
+  url: ${SPRING_DATASOURCE_URL}
+  username: ${SPRING_DATASOURCE_USERNAME}
+  password: ${SPRING_DATASOURCE_PASSWORD}
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  dialect: org.hibernate.dialect.MySQL8Dialect
+mvc:
+  static-path-pattern: /static/**
+telegram:
+  bot:
+    username: ${bot.token}
+    token: ${bot.token}

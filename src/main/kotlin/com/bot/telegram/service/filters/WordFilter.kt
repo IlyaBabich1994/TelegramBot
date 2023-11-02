@@ -15,6 +15,7 @@ import org.apache.lucene.search.BooleanQuery.Builder
 import org.apache.lucene.store.ByteBuffersDirectory
 import org.springframework.stereotype.Service
 import org.tartarus.snowball.ext.RussianStemmer
+import java.util.*
 
 
 @Service
@@ -32,9 +33,9 @@ class WordFilter(private val wordRepository: WordRepository) {
         val stemmer = RussianStemmer()
         val normalizedWords = mutableSetOf<String>()
         for (word in words) {
-            stemmer.setCurrent(word)
+            stemmer.current = word
             stemmer.stem()
-            val normalizedWord = stemmer.current.toLowerCase()
+            val normalizedWord = stemmer.current.lowercase(Locale.getDefault())
             normalizedWords.add(normalizedWord)
         }
         return normalizedWords
@@ -56,7 +57,7 @@ class WordFilter(private val wordRepository: WordRepository) {
     }
 
     fun containsPhrase(input: String): Boolean {
-        val normalizedInput = input.toLowerCase()
+        val normalizedInput = input.lowercase(Locale.getDefault())
         val query = createPhraseQuery(normalizedInput)
         return executeQuery(query)
     }

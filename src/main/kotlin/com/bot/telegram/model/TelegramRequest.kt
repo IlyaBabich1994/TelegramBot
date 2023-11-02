@@ -1,12 +1,12 @@
 package com.bot.telegram.model
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 
-data class TelegramResponse(
+data class TelegramRequest(
     val text: String? = null,
     val chatId: Long? = null,
     val buttons: InlineKeyboardMarkup? = null,
-    val message: SendMessage? = null,
-    val isEnabled: Boolean? = false
+    val message: Message? = null,
+    val replyToMessageId: Int? = null
 )

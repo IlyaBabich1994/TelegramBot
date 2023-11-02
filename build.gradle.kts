@@ -34,7 +34,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 //    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
     compileOnly("org.projectlombok:lombok")
-//    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
@@ -45,7 +45,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.2")
     implementation("org.apache.lucene:lucene-core:9.7.0")
     implementation("org.apache.lucene:lucene-analyzers-common:8.11.2")
-
 }
 
 tasks.withType<KotlinCompile> {
